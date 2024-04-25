@@ -90,3 +90,48 @@ insert into setor (fkSensorSetor, fkSupervisorSetor, nome, andar) values
 
 insert into registro (fkSensor, umidade, temperatura) values
 (1, 20.00, 42.00);
+
+select * from cliente;
+select * from endereco;
+select * from supervisor;
+select * from setor;
+select * from sensor;
+select * from registro;
+select * from verificacao;
+
+select * from cliente join endereco on idEndereco = fkEndereco
+join supervisor on idCliente = fkCliente
+join setor on idSupervisor = fkSupervisorSetor
+join sensor on idSensor = fkSensorSetor
+join registro on idSensor = fkSensor
+join verificacao on idVerificacao = fkVerificacao;
+
+select cliente.nome as 'Nome do Museu', supervisor.nome as 'Nome do supervisor',
+supervisor.permissao as 'Supervisor tem acesso aos dados?' 
+from cliente JOIN supervisor ON cliente.idCliente = supervisor.fkCliente;
+
+select cliente.nome as 'Nome do Museu', cep as 'CEP do Museu', supervisor.nome as 'Nome do supervisor',
+supervisor.permissao as 'Supervisor tem acesso aos dados?', setor.nome as 'Nome do setor do museu',
+setor.andar as 'Andar do setor', sensor.nome as 'Nome do sensor utilizado',
+registro.temperatura as 'Temperatura registrada',
+registro.umidade as 'Umidade registrada',
+registro.dtRegistro as 'Data e hora do registro feito pelo sensor',
+verificacao.tempMax as 'Temperatura máxima permitida',
+verificacao.umiMax as 'Umidade máxima permitida' from cliente
+join endereco on idEndereco = fkEndereco
+join supervisor on idCliente = fkCliente
+join setor on idSupervisor = fkSupervisorSetor
+join sensor on idSensor = fkSensorSetor
+join registro on idSensor = fkSensor
+join verificacao on idVerificacao = fkVerificacao;
+
+select r.idRegistro as 'ID do registro', r.fkSensor as 'ID do sensor',
+r.temperatura as 'Temperatura registrada', r.umidade as 'Umidade registrada',
+r.dtRegistro as 'Data do registro', s.idSensor as 'ID do sensor',
+v.idVerificacao as 'ID da verificação', v.tempMax as 'Temperatura máxima permitida',
+v.umiMax as 'Umidade máxima permitida' from registro as r join sensor as s on s.idSensor = r.fkSensor
+join verificacao as v on v.idVerificacao = s.fkVerificacao;
+
+select idRegistro as 'ID do registro', fkSensor as 'ID do sensor',
+umidade as 'Umidade registrada', temperatura as 'Temperatura registrada',
+dtRegistro as 'Data do registro' from registro;
