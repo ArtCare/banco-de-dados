@@ -1,6 +1,7 @@
 create database ArtCare;
 use ArtCare;
 
+
 create table verificacao (
 	idVerificacao int primary key auto_increment,
     tempMax decimal(4,2) not null,
@@ -16,60 +17,80 @@ create table endereco (
     complemento varchar(60)
 );
 
-create table cliente (
-	idCliente int auto_increment,
+create table museu (
+	idMuseu int primary key auto_increment,
     fkEndereco int,
     nome varchar(45) not null,
     cnpj char(14) not null unique,
-    rm varchar(45) not null unique,
-    email varchar(264) not null unique,
-    senha varchar(45) not null,
-    constraint pkCompostaCliente primary key (idCliente, fkEndereco),
+    rm char(9) not null unique,
     constraint fkEnderecoCliente foreign key (fkEndereco) references endereco (idEndereco)
 );
 
+create table representante (
+idRepresentante int,
+fkMuseu int,
+	constraint pkRepresentanteMuseu primary key (idRepresentante, fkMuseu),
+    constraint fkMuseuRepresentante foreign key (fkMuseu)
+		references museu(idMuseu),
+nome varchar(45) not null,
+email varchar(256) not null,
+senha varchar(45) not null
+);
+
 create table sensor (
-	idSensor int auto_increment,
-    fkVerificacao int,
+	idSensor int primary key auto_increment,
     nome char(5) default 'dht11',
     tipo varchar(45) default 'temperatura, umidade',
-    constraint chkNomeSensor check (nome in ('dht11')),
-    constraint pkCompostaSensor primary key (idSensor, fkVerificacao),
-    constraint fkVerificacaoSensor foreign key (fkVerificacao) references verificacao (idVerificacao)
+    constraint chkNomeSensor check (nome in ('dht11'))
 );
 
 create table supervisor (
-	idSupervisor int auto_increment,
-    fkCliente int,
+	idSupervisor int primary key auto_increment,
     nome varchar(45) not null,
+    email varchar(256) not null,
+    senha varchar(45) not null,
     permissao char(3) not null default 'não',
-    constraint chkPermissaoSupervisor check (permissao in ('sim', 'não')),
-    constraint pkCompostaSupervisor primary key (idSupervisor, fkCliente),
-    constraint fkClienteSupervisor foreign key (fkCliente) references cliente (idCliente)
+    constraint chkPermissaoSupervisor check (permissao in ('sim', 'não'))
 );
 
 create table setor (
 	idSetor int auto_increment,
-    fkSensorSetor int,
-    fkSupervisorSetor int,
+    fkSensor int,
+    fkMuseu int,
+    fkVerificacao int,
     nome varchar(45) not null,
     andar int not null,
-    constraint pkCompostaSetor primary key (idSetor, fkSensorSetor),
-    constraint fkSensorDoSetor foreign key (fkSensorSetor) references sensor (idSensor),
-    constraint fkSupervisorDoSetor foreign key (fkSupervisorSetor) references supervisor (idSupervisor)
+    constraint pkCompostaSetor primary key (idSetor, fkSensor, fkMuseu, fkVerificacao),
+    constraint fkSensorDoSetor foreign key (fkSensor) references sensor (idSensor),
+    constraint fkMuseuDoSetor foreign key (fkMuseu) references museu (idMuseu),
+    constraint fkVerificacaoDoSetor foreign key (fkVerificacao) references verificacao (idVerificacao)
+);
+
+create table visualizacao (
+idVisualizacao int auto_increment,
+fkSetor int,
+fkSensor int,
+fkMuseu int,
+fkSupervisor int,
+	constraint pkCompostaVisualizacao primary key (idVisualizacao, fkSetor, fkSensor, fkMuseu, fkSupervisor),
+    constraint fkSetorVisualizacao foreign key (fkSetor) references setor(idSetor),
+    constraint fkSensorVisualizacao foreign key (fkSensor) references sensor(idSensor),
+    constraint fkMuseuVisualizacao foreign key (fkMuseu) references museu(idMuseu),
+    constraint fkSupervisor foreign key (fkSupervisor) references supervisor(idSupervisor)
 );
 
 create table registro (
 	idRegistro int auto_increment,
     fkSensor int,
-    umidade decimal(5,2),
-    temperatura decimal(5,2),
+    umidade decimal(4,2),
+    temperatura decimal(4,2),
     dtRegistro timestamp not null default current_timestamp,
     constraint pkCompostaRegistro primary key (idRegistro, fkSensor),
     constraint fkSensorRegistro foreign key (fkSensor) references sensor (idSensor)
 );
 
 
+-- Necessário alterar INSERTS e SELECTS
 insert into verificacao (tempMax, tempMin, umiMax, umiMin) values
 (20.00, 18.00, 45.00, 40.00);
 
@@ -135,3 +156,15 @@ join verificacao as v on v.idVerificacao = s.fkVerificacao;
 select idRegistro as 'ID do registro', fkSensor as 'ID do sensor',
 umidade as 'Umidade registrada', temperatura as 'Temperatura registrada',
 dtRegistro as 'Data do registro' from registro;
+
+alter table verificacao
+add column alertaTempMax decimal(4,2);
+
+alter table verificacao
+add column alertaTempMin decimal(4,2);
+
+alter table verificacao
+add column alertaUmiMax decimal(4,2);
+
+alter table verificacao
+add column alertaUmiMin decimal(4,2);
